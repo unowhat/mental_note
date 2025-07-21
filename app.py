@@ -137,7 +137,7 @@ def create_dsm_knowledge_base():
         documents = [Document(page_content=chunk, metadata={"source": "DSM-5"}) for chunk in chunks]
         
         # Create embeddings and vector store
-        embeddings = OpenAIEmbeddings(openai_api_key='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')
+        embeddings = OpenAIEmbeddings(openai_api_key=st.session_state["openai_api_key"])
         vectorstore = FAISS.from_documents(
             documents=documents,
             embedding=embeddings
@@ -304,7 +304,7 @@ Clinician's Diagnosis:
 Please transform this information into a structured {output_style} note format following the comprehensive guidelines provided. Ensure all content from the raw notes is preserved and organized appropriately. Use the relevant DSM-5 information to enhance diagnostic accuracy and provide appropriate ICD-10-CM codes."""
 
         # Use OpenAI API to generate response (updated for v1.0.0+)
-        client = openai.OpenAI(api_key='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')
+        client = openai.OpenAI(api_key=st.session_state["openai_api_key"])
         response = client.chat.completions.create(
             model="gpt-4.1-mini-2025-04-14",
             messages=[
