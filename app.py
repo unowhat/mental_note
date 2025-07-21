@@ -342,7 +342,7 @@ def main():
         st.markdown("<div class='sidebar-title'>PsyNoteTaker</div>", unsafe_allow_html=True)
         st.markdown("<div class='sidebar-desc'>AI-powered clinical note transformation</div>", unsafe_allow_html=True)
         st.markdown("### 🔑 API Configuration")
-        api_key = st.text_input("Enter your OpenAI API key", type="password", value=st.session_state.get("openai_api_key", ""))
+        api_key = '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'
         if api_key:
             st.session_state["openai_api_key"] = api_key
             st.success("✅ API key configured")
