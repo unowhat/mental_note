@@ -7,7 +7,7 @@ import PyPDF2
 import io
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
 import re
 
@@ -138,10 +138,9 @@ def create_dsm_knowledge_base():
         
         # Create embeddings and vector store
         embeddings = OpenAIEmbeddings(openai_api_key='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')
-        vectorstore = Chroma.from_documents(
+        vectorstore = FAISS.from_documents(
             documents=documents,
-            embedding=embeddings,
-            collection_name="dsm5_knowledge"
+            embedding=embeddings
         )
         
         return vectorstore, len(chunks)
@@ -180,7 +179,7 @@ def transform_note_with_gpt(raw_note, diagnosis, output_style, api_key):
     """Transform raw note using OpenAI API"""
     try:
         # Set OpenAI API key
-        openai.api_key = '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'
+        openai.api_key = api_key
         
         # Create comprehensive system prompt based on output style
         if output_style == "SOAP":
@@ -343,8 +342,12 @@ def main():
         st.markdown("<div class='sidebar-title'>PsyNoteTaker</div>", unsafe_allow_html=True)
         st.markdown("<div class='sidebar-desc'>AI-powered clinical note transformation</div>", unsafe_allow_html=True)
         st.markdown("### 🔑 API Configuration")
-        st.success("✅ API key configured (GPT-4.1-mini)")
-        st.info("Using OpenAI GPT-4.1-mini model directly")
+        api_key = st.text_input("Enter your OpenAI API key", type="password", value=st.session_state.get("openai_api_key", ""))
+        if api_key:
+            st.session_state["openai_api_key"] = api_key
+            st.success("✅ API key configured")
+        else:
+            st.warning("Please enter your OpenAI API key to use the app.")
         st.markdown("---")
         st.markdown("### 📚 DSM-5 Knowledge Base")
         
@@ -408,14 +411,14 @@ def main():
                 st.info("**DAP Format:** Data, Assessment, Plan")
             else:
                 st.info("**Standard Format:** Presenting Problem, Background/History, Session Content, Interventions and Outcomes, Coping Strategies, Recommendations and Follow-Up")
-            submitted = st.form_submit_button("🔄 Transform Note", type="primary")
+            submitted = st.form_submit_button("🔄 Transform Note", type="primary", disabled=("openai_api_key" not in st.session_state or not st.session_state["openai_api_key"]))
             if submitted:
                 if not raw_note or not diagnosis:
                     st.error("Please fill in both the raw notes and diagnosis fields.")
                 else:
                     with st.spinner("Transforming note with AI..."):
                         transformed_note = transform_note_with_gpt(
-                            raw_note, diagnosis, output_style, None  # API key is hardcoded in the function
+                            raw_note, diagnosis, output_style, st.session_state["openai_api_key"]
                         )
                         if transformed_note.startswith("Error:"):
                             st.error(transformed_note)
